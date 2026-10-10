@@ -25,18 +25,16 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
-      - name: Levantar servicios
-        run: |
-          docker compose up -d --wait
-          docker compose ps
-      - name: Preparar base de datos
-        run: |
-          python rebuild.py
-      - name: Verify reproducibility contract
+      - name: Preparar la base y comprobar que setup se puede repetir
         shell: bash
         run: |
           set -euo pipefail
           make setup
+          make setup
+      - name: Verificar entregas M01-M05
+        shell: bash
+        run: |
+          set -euo pipefail
           make verify
       - name: Detener servicios
         if: always()

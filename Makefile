@@ -2,21 +2,16 @@
 
 PYTHON ?= python
 
+# Prepara los servicios y reconstruye el esquema/seed desde el repositorio.
 setup:
-	@mkdir -p artifacts evidence docs db/migrations db/seed src tests
-	@test -f .env.example
-	@echo "CDRL starter base preparada. Configura .env localmente cuando corresponda."
+	@PYTHON="$(PYTHON)" bash scripts/setup.sh
 
+# Ejecuta toda la suite contra la base preparada por `make setup`.
 verify:
-	@bash scripts/verify_base.sh
-	@PYTHON="$(PYTHON)" bash scripts/verify_m02.sh
-	@PYTHON="$(PYTHON)" bash scripts/verify_m03.sh
-	@PYTHON="$(PYTHON)" bash scripts/verify_m04.sh
-	@PYTHON="$(PYTHON)" bash scripts/verify_m05.sh
+	@PYTHON="$(PYTHON)" bash scripts/verify_all.sh
 
 run:
 	@docker compose up
 
-# M02: ejecutar después de levantar PostgreSQL y aplicar rebuild.py.
 queries:
 	@$(PYTHON) -m db.queries.demo

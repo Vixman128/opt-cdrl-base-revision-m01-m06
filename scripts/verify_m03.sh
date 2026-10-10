@@ -59,6 +59,7 @@ echo "OK: no se detectaron patrones de secretos."
 echo "[4/6] Ejecutando pruebas M03..."
 
 mkdir -p artifacts
+rm -f -- "$REPORT"
 
 "$PYTHON_BIN" -m pytest \
     tests/test_m03_security.py \
@@ -90,22 +91,32 @@ failed = summary.get("failed", 0)
 errors = summary.get("error", summary.get("errors", 0))
 total = summary.get("total", 0)
 
-if total != 4:
+if total != 8:
     raise SystemExit(
-        f"ERROR: se esperaban 4 pruebas M03 y se encontraron {total}."
+        f"ERROR: se esperaban 8 pruebas M03 y se encontraron {total}."
     )
 
-if passed != 4 or failed != 0 or errors != 0:
+if passed != 8 or failed != 0 or errors != 0:
     raise SystemExit(
-        "ERROR: las pruebas M03 no terminaron 4/4 aprobadas. "
+        "ERROR: las pruebas M03 no terminaron 8/8 aprobadas. "
         f"passed={passed}, failed={failed}, errors={errors}"
     )
 
 required_tests = {
-    "test_reader_can_query_context_view",
-    "test_writer_can_insert_telemetry_reading",
-    "test_operator_can_update_device_status",
-    "test_reader_insert_is_rejected_by_authorization",
+    "test_reader_can_query_only_safe_operational_view",
+    "test_operator_can_query_only_safe_operational_view",
+    "test_writer_can_insert_without_reading_telemetry",
+    "test_reader_cannot_query_sensitive_telemetry_context",
+    "test_reader_cannot_insert_telemetry",
+    "test_operator_cannot_read_raw_telemetry",
+    "test_operator_cannot_modify_devices",
+    "test_new_objects_created_by_migrator_are_private_by_default",
+}
+required_denials = {
+    "test_reader_cannot_query_sensitive_telemetry_context",
+    "test_reader_cannot_insert_telemetry",
+    "test_operator_cannot_read_raw_telemetry",
+    "test_operator_cannot_modify_devices",
 }
 
 executed_tests = set()
@@ -127,32 +138,39 @@ if missing:
         + ", ".join(sorted(missing))
     )
 
+missing_denials = required_denials - executed_tests
+if missing_denials:
+    raise SystemExit(
+        "ERROR: faltan denegaciones M03 aprobadas: "
+        + ", ".join(sorted(missing_denials))
+    )
+
 print(
     "OK: artifact M03 valido: "
-    "4 pruebas ejecutadas y 4 aprobadas."
+    "8 pruebas ejecutadas y aprobadas; 4 accesos no autorizados denegados."
 )
 PY
 
-echo "[6/6] Verificando fallo declarado de autorizacion..."
+echo "[6/6] Verificando las cuatro denegaciones de autorización..."
 
-if ! grep -q \
-    'test_reader_insert_is_rejected_by_authorization' \
-    tests/test_m03_security.py; then
-    echo "ERROR: falta el fallo declarado de autorizacion."
+for scenario in \
+    test_reader_cannot_query_sensitive_telemetry_context \
+    test_reader_cannot_insert_telemetry \
+    test_operator_cannot_read_raw_telemetry \
+    test_operator_cannot_modify_devices
+do
+    if ! grep -q "$scenario" tests/test_m03_security.py; then
+        echo "ERROR: falta la denegación declarada: $scenario" >&2
+        exit 1
+    fi
+done
+
+if [[ "$(grep -c 'pgcode == "42501"' tests/test_m03_security.py)" -ne 4 ]]; then
+    echo "ERROR: las cuatro denegaciones deben comprobar SQLSTATE 42501." >&2
     exit 1
 fi
 
-if ! grep -q 'InsufficientPrivilege' tests/test_m03_security.py; then
-    echo "ERROR: el fallo declarado no valida InsufficientPrivilege."
-    exit 1
-fi
-
-if ! grep -q '42501' tests/test_m03_security.py; then
-    echo "ERROR: el fallo declarado no valida SQLSTATE 42501."
-    exit 1
-fi
-
-echo "OK: fallo declarado valida InsufficientPrivilege / SQLSTATE 42501."
+echo "OK: las cuatro denegaciones comprueban InsufficientPrivilege / SQLSTATE 42501."
 
 echo
 echo "M03 verificado correctamente."

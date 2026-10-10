@@ -3,6 +3,7 @@
   "commitSha": "REPLACE_AT_SUBMISSION",
   "commands": [
     "make setup",
+    "make setup",
     "make verify",
     "make run"
   ],

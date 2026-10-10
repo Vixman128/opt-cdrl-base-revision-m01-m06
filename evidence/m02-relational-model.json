@@ -3,7 +3,7 @@
     "commitSha": "REPLACE_AT_SUBMISSION",
     "commands": [
         "make setup",
-        "python rebuild.py",
+    "make setup",
         "make verify",
         "python -m db.queries.demo",
         "make run"

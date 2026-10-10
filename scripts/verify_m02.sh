@@ -7,6 +7,7 @@ cd "$PROJECT_DIR"
 
 PYTHON_BIN="${PYTHON:-python}"
 REPORT="artifacts/m02-relational-results.json"
+INVARIANT_REPORT="artifacts/m02-david-invariants.json"
 
 required_files=(
   "db/migrations/001_schema.sql"
@@ -28,11 +29,12 @@ done
 mkdir -p artifacts
 
 # Evita confundir un reporte anterior con esta ejecución.
-rm -f -- "$REPORT"
+rm -f -- "$REPORT" "$INVARIANT_REPORT"
 
-echo "Ejecutando pruebas de invariantes y aceptación de M02..."
+echo "Ejecutando las ocho pruebas de invariantes y cuatro de aceptación de M02..."
 
 "$PYTHON_BIN" -m pytest \
+  tests/test_m02_invariants_david.py \
   tests/test_m02_acceptance_angelica.py \
   -v \
   --tb=short \
@@ -49,6 +51,14 @@ report = json.loads(path.read_text(encoding="utf-8"))
 tests = report.get("tests", [])
 
 required_cases = {
+    "tests/test_m02_invariants_david.py::test_duplicate_reading_is_rejected",
+    "tests/test_m02_invariants_david.py::test_nonexistent_device_is_rejected",
+    "tests/test_m02_invariants_david.py::test_required_device_is_rejected_when_null",
+    "tests/test_m02_invariants_david.py::test_received_before_recorded_is_rejected",
+    "tests/test_m02_invariants_david.py::test_device_with_readings_cannot_be_deleted",
+    "tests/test_m02_invariants_david.py::test_location_with_devices_cannot_be_deleted",
+    "tests/test_m02_invariants_david.py::test_context_view_returns_related_reading",
+    "tests/test_m02_invariants_david.py::test_context_view_without_readings_is_empty",
     "tests/test_m02_acceptance_angelica.py::test_m02_normal",
     "tests/test_m02_acceptance_angelica.py::test_m02_empty",
     "tests/test_m02_acceptance_angelica.py::test_m02_boundaries",
@@ -64,7 +74,7 @@ passed = {
 if report.get("exitcode") != 0:
     raise SystemExit("El reporte indica una ejecución fallida.")
 
-if not tests or any(test.get("outcome") != "passed" for test in tests):
+if len(tests) != 12 or any(test.get("outcome") != "passed" for test in tests):
     raise SystemExit("Hay pruebas no aprobadas o no se ejecutaron pruebas.")
 
 missing = required_cases - passed
@@ -74,8 +84,26 @@ if missing:
         + ", ".join(sorted(missing))
     )
 
-print(f"M02: {len(tests)} pruebas aprobadas.")
+invariant_tests = [
+    test for test in tests
+    if test.get("nodeid", "").startswith(
+        "tests/test_m02_invariants_david.py::"
+    )
+]
+invariant_report = {
+    "assignmentId": "m02-relational-invariants",
+    "status": "passed",
+    "summary": {"total": len(invariant_tests), "passed": len(invariant_tests), "failed": 0},
+    "tests": invariant_tests,
+}
+Path("artifacts/m02-david-invariants.json").write_text(
+    json.dumps(invariant_report, indent=2) + "\n",
+    encoding="utf-8",
+)
+
+print(f"M02: {len(tests)} pruebas aprobadas (8 invariantes + 4 aceptación).")
 print(f"Reporte válido: {path}")
+print("Reporte de invariantes: artifacts/m02-david-invariants.json")
 PY
 
 echo "Verificación M02 completada."
