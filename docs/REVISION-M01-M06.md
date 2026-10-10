@@ -8,7 +8,7 @@ Esta es una revisión con los criterios de la retroalimentación del maestro. No
 
 ## Estado evaluado y método
 
-Se evaluó `C:/Users/Vixman Suarez/Desktop/opt-cdrl-base-review`, rama `fix/m01-m03-reproducibility-security`. Su commit base es `4896d5e1de14001f808cfafc6563c9a38b9c40bf`, con correcciones locales todavía sin commit. El parche `source.patch` conserva los cambios evaluados; los tres scripts nuevos de preparación e integración también se copiaron a la instantánea.
+Se evaluó `C:/Users/Vixman Suarez/Desktop/opt-cdrl-base-review`, rama `fix/m01-m03-reproducibility-security`. Su commit base es `4896d5e1de14001f808cfafc6563c9a38b9c40bf`. Las correcciones estaban sin commit durante la evaluación y después se registraron en `6c2a87b23726027f2bc491b93e71c54b6dc7b9f1`. El parche `source.patch` conserva los cambios evaluados; los tres scripts nuevos de preparación e integración también se copiaron a la instantánea. La carpeta compartida se llama ahora `opt-cdrl-base-revision-m01-m06`.
 
 Se creó un checkout nuevo en WSL, un entorno virtual nuevo y volúmenes Docker nuevos para PostgreSQL y DynamoDB. Se configuró un `.env` local sintético, ignorado por Git, a partir del ejemplo. Después se ejecutaron exactamente `make setup`, `make setup` y `make verify`, sin preparar la base por separado. El motor fue Docker Engine 29.7.2 con Compose 5.5.0; Python 3.14.4 y las dependencias de requirements.txt. Esta ejecución acredita el flujo Linux/WSL. No acredita el arranque de Docker Desktop en Windows, cuyo fallo de infraestructura motivó el motor separado.
 
@@ -40,7 +40,7 @@ Las comprobaciones adicionales se ejecutaron sobre objetos y datos sintéticos. 
 
 ### M01
 
-La observación central del maestro está corregida en esta copia: `make setup` inicia servicios y ejecuta reconstrucción/seed, y `make verify` ejecuta los cuatro escenarios y genera un reporte real. Se comprobó que repetir setup conserva los datos sembrados. Queda completar el SHA de la evidencia y entregar un commit que contenga estas correcciones. Una ejecución local correcta no modifica retrospectivamente la entrega o los tags anteriores.
+La observación central del maestro está corregida en esta copia: `make setup` inicia servicios y ejecuta reconstrucción/seed, y `make verify` ejecuta los cuatro escenarios y genera un reporte real. Se comprobó que repetir setup conserva los datos sembrados. Queda completar el SHA de la evidencia y entregar la versión final corregida. Las correcciones evaluadas están registradas en `6c2a87b`. Una ejecución local correcta no modifica retrospectivamente la entrega o los tags anteriores.
 
 ### M02
 
@@ -76,7 +76,7 @@ La entrega grupal todavía carece de auditoría segura, operaciones auditadas, r
 
 1. Crear una nueva migración M03 que cierre permisos de funciones futuras y actualice los permisos anteriores. Agregar verificaciones reales de funciones y actualización de una base antigua.
 2. Hacer que el comando de consultas cargue el entorno y que la verificación M02 produzca y valide su demostración.
-3. Completar el ADR de seguridad y actualizar evidencias con resultados actuales, conteos y SHA del commit entregado. Ahora los arreglos solo viven como cambios locales.
+3. Completar el ADR de seguridad y actualizar evidencias con resultados actuales, conteos y SHA del commit entregado. Los arreglos evaluados están en `6c2a87b`; este repositorio independiente se comparte para revisión del equipo.
 4. Integrar las partes faltantes del equipo M06 y conectarlas con la verificación oficial.
 
 La preparación y las pruebas que antes explicaban buena parte de las notas bajas ya están integradas y comprobadas en la copia corregida. No daría por aprobada todavía la entrega completa: M03 conserva dos fallos de seguridad/reproducibilidad y M06 grupal no está completo.
@@ -94,4 +94,4 @@ El detalle de ejecución y los reportes se conservan en esta carpeta. `statuses.
 
 ## Nombre de la copia para compartir
 
-Después de la evaluación, la carpeta se renombró a opt-cdrl-base-revision-m01-m06 y la rama local a review/m01-m06-victor. Los resultados corresponden al código evaluado antes de ese cambio de nombre. Esta versión se comparte para revisión del equipo y conserva los pendientes documentados arriba.
+Después de la evaluación, la carpeta se renombró a opt-cdrl-base-revision-m01-m06 y la rama local a review/m01-m06-victor. La rama que se subió inicialmente al repositorio del equipo fue eliminada por indicación de Víctor. La copia se comparte en un repositorio independiente, con main como rama de descarga. Los resultados corresponden al código evaluado antes del cambio de nombre; esta actualización de documentación no vuelve a ejecutar ni modifica las pruebas. Esta versión se comparte para revisión del equipo y conserva los pendientes documentados arriba.
